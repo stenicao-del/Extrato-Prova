@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Extrato de Tempos - Capivara Clube</title>
+    <style>
+        /* RESET E CORES BASE */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: #121212; 
+            color: #e0e0e0; 
+            margin: 0; 
+            padding: 10px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+
+        /* CONTAINER PRINCIPAL */
+        .dashboard-container { 
+            width: 100%; 
+            max-width: 600px; 
+            background-color: #1e1e1e; 
+            padding: 15px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            border: 1px solid #333;
+        }
+
+        header { 
+            text-align: center; 
+            margin-bottom: 20px; 
+            border-bottom: 2px solid #4CAF50; 
+            padding-bottom: 10px; 
+        }
+        h1 { font-size: 1.6em; color: #4CAF50; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* SEÇÃO DE RECORDES (TOPO) */
+        .live-section { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            margin-bottom: 20px; 
+        }
+        .king-box { 
+            grid-column: span 2; 
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+            border: 2px solid #FFC107; 
+            padding: 15px; 
+            border-radius: 15px; 
+            text-align: center;
+        }
+        .record-box { 
+            background-color: #252525; 
+            border: 1px solid #333; 
+            padding: 12px; 
+            border-radius: 12px; 
+            text-align: center; 
+        }
+        .king-display { font-size: 2.5em; font-weight: bold; color: #FFC107; font-family: 'Courier New', monospace; line-height: 1; }
+        .record-display { font-size: 1.5em; font-weight: bold; color: #FFC107; font-family: 'Courier New', monospace; }
+        .driver-info { font-size: 0.9em; color: #4CAF50; font-weight: bold; margin-top: 5px; text-transform: uppercase; }
+
+        /* FILTRO DE CATEGORIA */
+        .category-filter { margin-bottom: 15px; }
+        .category-filter select { 
+            background-color: #333; 
+            color: white; 
+            padding: 14px; 
+            border-radius: 10px; 
+            border: 1px solid #4CAF50; 
+            width: 100%; 
+            font-size: 16px; 
+            font-weight: bold;
+            appearance: none;
+        }
+
+        /* TABELA DE RANKING */
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        th { background-color: #2a2a2a; color: #4CAF50; padding: 12px; text-align: left; font-size: 0.75em; border-radius: 5px; }
+        td { padding: 16px 12px; border-bottom: 1px solid #333; font-size: 1em; }
+        .pos-cell { color: #4CAF50; font-weight: bold; width: 40px; }
+        .time-cell { font-family: 'Courier New', monospace; font-weight: bold; text-align: right; }
+
+        /* MODAL DE EXTRATO (DETALHES DO PILOTO) */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0; top: 0; 
+            width: 100%; height: 100%; 
+            background-color: rgba(0,0,0,0.98); 
+            overflow-y: auto; 
+            padding-top: 20px;
+        }
+        .modal-content { 
+            background-color: #1e1e1e; 
+            margin: auto; 
+            padding: 25px; 
+            border: 1px solid #4CAF50; 
+            width: 92%; 
+            max-width: 450px; 
+            border-radius: 20px; 
+            position: relative; 
+        }
+        .close-btn { position: absolute; right: 20px; top: 10px; color: #ff5722; font-size: 40px; cursor: pointer; }
+        
+        .best-row { 
+            display: flex; 
+            justify-content: space-around; 
+            background: #282828; 
+            padding: 15px; 
+            border-radius: 12px; 
+            margin: 20px 0; 
+            border: 1px dashed #4CAF50; 
+        }
+        .best-row div { text-align: center; }
+        .best-row strong { color: #FFC107; font-size: 1.2em; font-family: monospace; }
+        .best-row small { color: #888; text-transform: uppercase; font-size: 0.7em; }
+
+        .pista-tag { padding: 3px 8px; border-radius: 5px; font-size: 0.7em; font-weight: bold; color: white; }
+        .tag-p1 { background-color: #1976D2; }
+        .tag-p2 { background-color: #9C27B0; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <header>
+            <h1>Capivara Clube</h1>
+            <div id="status-update" style="font-size: 0.6em; color: #666; margin-top: 5px;">Sincronizando...</div>
+        </header>
+
+        <div class="live-section">
+            <div class="king-box">
+                <div style="font-size: 0.8em; color: #FFC107; margin-bottom: 5px;">👑 REI DA PISTA (MELHOR VOLTA)</div>
+                <div id="king-time" class="king-display">0.000s</div>
+                <div id="king-name" class="driver-info">-</div>
+            </div>
+            <div class="record-box">
+                <div style="font-size: 0.7em; color: #888;">RECORD P1</div>
+                <div id="rec-p1-time" class="record-display">0.000s</div>
+                <div id="rec-p1-name" class="driver-info">-</div>
+            </div>
+            <div class="record-box">
+                <div style="font-size: 0.7em; color: #888;">RECORD P2</div>
+                <div id="rec-p2-time" class="record-display">0.000s</div>
+                <div id="rec-p2-name" class="driver-info">-</div>
+            </div>
+        </div>
+
+        <div class="category-filter">
+            <select id="categoria" onchange="renderizarRanking()"></select>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>POS</th>
+                    <th>PILOTO</th>
+                    <th style="text-align: right;">SOMA P1+P2</th>
+                </tr>
+            </thead>
+            <tbody id="ranking-body">
+                </tbody>
+        </table>
+    </div>
+
+    <div id="driverModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="fecharModal()">&times;</span>
+            <div style="text-align: center;">
+                <div id="modal-cat" style="color: #4CAF50; font-size: 0.8em; font-weight: bold; text-transform: uppercase;"></div>
+                <h2 id="modal-nome" style="margin: 5px 0; color: #FFC107; text-transform: uppercase;">-</h2>
+            </div>
+            
+            <div class="best-row">
+                <div><small>Melhor P1</small><br><strong id="modal-best-p1">-</strong></div>
+                <div><small>Melhor P2</small><br><strong id="modal-best-p2">-</strong></div>
+            </div>
+
+            <table style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th style="font-size: 0.7em;">Nº</th>
+                        <th style="font-size: 0.7em;">PISTA</th>
+                        <th style="font-size: 0.7em; text-align: right;">TEMPO</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const googleScriptURL = "https://script.google.com/macros/s/AKfycbx6BbQbgdffb_sVon5PSu6M1EK-2_qN2aNbLbzAat_Vx8Kuvv-mVckZI9Kp7Cdd08E/exec";
+        let todosOsDados = [];
+        let rankingCalculado = [];
+
+        async function carregarDados() {
+            try {
+                // Cache Buster para evitar dados velhos no celular
+                const url = googleScriptURL + "?t=" + Math.floor(Date.now() / 5000);
+                const response = await fetch(url, { method: 'GET', cache: 'no-store' });
+                const data = await response.json();
+
+                if (JSON.stringify(data) !== JSON.stringify(todosOsDados)) {
+                    todosOsDados = data;
+                    processarDados();
+                    document.getElementById('status-update').textContent = "Atualizado às " + new Date().toLocaleTimeString();
+                }
+            } catch (e) { 
+                console.error("Erro ao carregar:", e);
+                document.getElementById('status-update').textContent = "Erro de conexão...";
+            }
+        }
+
+        function processarDados() {
+            const comp = {};
+            let king = { t: Infinity, n: '' };
+            let rP1 = { t: Infinity, n: '' }, rP2 = { t: Infinity, n: '' };
+
+            todosOsDados.forEach(item => {
+                [{n:item.nome_p1, c:item.categoria_p1, t:item.tempo_p1, id:item.id_p1, p:'p1'},
+                 {n:item.nome_p2, c:item.categoria_p2, t:item.tempo_p2, id:item.id_p2, p:'p2'}
+                ].forEach(obj => {
+                    if (obj.id && obj.t > 0) {
+                        // Agrega para o Ranking Soma
+                        if (!comp[obj.id]) comp[obj.id] = { nome:obj.n, categoria:obj.c, mP1:Infinity, mP2:Infinity };
+                        if (obj.p === 'p1') comp[obj.id].mP1 = Math.min(comp[obj.id].mP1, obj.t);
+                        else comp[obj.id].mP2 = Math.min(comp[obj.id].mP2, obj.t);
+                        
+                        // Lógica Global (Records)
+                        if (obj.t < king.t) king = { t: obj.t, n: obj.n };
+                        if (obj.p === 'p1' && obj.t < rP1.t) rP1 = { t: obj.t, n: obj.n };
+                        if (obj.p === 'p2' && obj.t < rP2.t) rP2 = { t: obj.t, n: obj.n };
+                    }
+                });
+            });
+
+            // Exibe Destaques
+            document.getElementById('king-time').textContent = king.t !== Infinity ? king.t.toFixed(3) + "s" : "0.000s";
+            document.getElementById('king-name').textContent = king.n || "-";
+            document.getElementById('rec-p1-time').textContent = rP1.t !== Infinity ? rP1.t.toFixed(3) + "s" : "0.000s";
+            document.getElementById('rec-p1-name').textContent = rP1.n || "-";
+            document.getElementById('rec-p2-time').textContent = rP2.t !== Infinity ? rP2.t.toFixed(3) + "s" : "0.000s";
+            document.getElementById('rec-p2-name').textContent = rP2.n || "-";
+
+            // Calcula Ranking Soma (só quem tem tempos nas duas pistas)
+            rankingCalculado = Object.values(comp)
+                .filter(c => c.mP1 !== Infinity && c.mP2 !== Infinity)
+                .map(c => ({ ...c, soma: c.mP1 + c.mP2 }))
+                .sort((a, b) => a.soma - b.soma);
+
+            // Popula Categorias
+            const catSel = document.getElementById('categoria');
+            if (catSel.options.length <= 1) {
+                const cats = [...new Set(rankingCalculado.map(c => c.categoria))].sort();
+                catSel.innerHTML = '<option value="TODOS">TODAS AS CATEGORIAS</option>' + 
+                                   cats.map(c => `<option value="${c}">${c.toUpperCase()}</option>`).join('');
+            }
+            renderizarRanking();
+        }
+
+        function renderizarRanking() {
+            const body = document.getElementById('ranking-body');
+            const filtro = document.getElementById('categoria').value;
+            body.innerHTML = '';
+            let lista = (filtro === 'TODOS') ? rankingCalculado : rankingCalculado.filter(c => c.categoria === filtro);
+
+            lista.forEach((c, i) => {
+                const row = document.createElement('tr');
+                row.onclick = () => abrirExtrato(c.nome, c.categoria, c.mP1, c.mP2);
+                row.innerHTML = `
+                    <td class="pos-cell">${i + 1}º</td>
+                    <td>${c.nome}<br><small style="color: #777;">${c.categoria}</small></td>
+                    <td class="time-cell">${c.soma.toFixed(3)}s</td>
+                `;
+                body.appendChild(row);
+            });
+        }
+
+        function abrirExtrato(nome, cat, mP1, mP2) {
+            document.getElementById('modal-nome').textContent = nome;
+            document.getElementById('modal-cat').textContent = cat;
+            document.getElementById('modal-best-p1').textContent = mP1.toFixed(3) + "s";
+            document.getElementById('modal-best-p2').textContent = mP2.toFixed(3) + "s";
+            
+            const hBody = document.getElementById('history-body');
+            hBody.innerHTML = '';
+            let v = [];
+            
+            todosOsDados.forEach(item => {
+                if (item.nome_p1 === nome && item.tempo_p1 > 0) v.push({ p: 'P1', t: item.tempo_p1 });
+                if (item.nome_p2 === nome && item.tempo_p2 > 0) v.push({ p: 'P2', t: item.tempo_p2 });
+            });
+
+            v.reverse().forEach((vol, i) => {
+                const r = document.createElement('tr');
+                r.innerHTML = `
+                    <td style="font-size: 0.8em; color: #666;">${v.length-i}</td>
+                    <td><span class="pista-tag ${vol.p==='P1'?'tag-p1':'tag-p2'}">${vol.p}</span></td>
+                    <td class="time-cell">${vol.t.toFixed(3)}s</td>
+                `;
+                hBody.appendChild(r);
+            });
+            document.getElementById('driverModal').style.display = "block";
+        }
+
+        function fecharModal() { document.getElementById('driverModal').style.display = "none"; }
+        window.onclick = e => { if(e.target == document.getElementById('driverModal')) fecharModal(); }
+        
+        // Loop de Atualização
+        carregarDados();
+        setInterval(carregarDados, 5000); 
+    </script>
+</body>
+</html>
