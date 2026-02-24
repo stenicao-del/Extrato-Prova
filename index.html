@@ -7,46 +7,54 @@
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Segoe UI', sans-serif; background-color: #121212; color: #e0e0e0; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
-        .dashboard-container { width: 100%; max-width: 600px; background-color: #1e1e1e; padding: 15px; border-radius: 20px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; }
-        h1 { font-size: 1.6em; color: #4CAF50; margin: 0; text-transform: uppercase; }
+        .dashboard-container { width: 100%; max-width: 650px; background-color: #1e1e1e; padding: 15px; border-radius: 20px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        .live-section { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .king-box { grid-column: span 2; background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border: 2px solid #FFC107; padding: 15px; border-radius: 15px; text-align: center; }
-        .record-box { background-color: #252525; border: 1px solid #333; padding: 12px; border-radius: 12px; text-align: center; }
+        header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; }
+        h1 { font-size: 1.6em; color: #4CAF50; margin: 0; text-transform: uppercase; }
+
+        /* RECORDES */
+        .live-section { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .king-box { grid-column: span 2; background: linear-gradient(145deg, #2a2a2a, #1a1a1a); border: 2px solid #FFC107; padding: 12px; border-radius: 15px; text-align: center; }
+        .record-box { background-color: #252525; border: 1px solid #333; padding: 10px; border-radius: 12px; text-align: center; }
         .king-display { font-size: 2.2em; font-weight: bold; color: #FFC107; font-family: monospace; }
-        .record-display { font-size: 1.3em; font-weight: bold; color: #FFC107; font-family: monospace; }
-        .driver-info { font-size: 0.8em; color: #4CAF50; font-weight: bold; }
+        .record-display { font-size: 1.2em; font-weight: bold; color: #FFC107; font-family: monospace; }
+        .driver-info { font-size: 0.75em; color: #4CAF50; font-weight: bold; text-transform: uppercase; }
 
+        /* FILTRO */
         .category-filter { margin-bottom: 15px; }
-        .category-filter select { background-color: #333; color: white; padding: 12px; border-radius: 10px; border: 1px solid #4CAF50; width: 100%; font-size: 16px; }
+        .category-filter select { background-color: #333; color: white; padding: 12px; border-radius: 10px; border: 1px solid #4CAF50; width: 100%; font-size: 14px; font-weight: bold; }
 
-        table { width: 100%; border-collapse: collapse; }
-        th { background-color: #2a2a2a; color: #4CAF50; padding: 10px; font-size: 0.65em; text-transform: uppercase; text-align: center; }
-        td { padding: 14px 5px; border-bottom: 1px solid #333; font-size: 0.9em; text-align: center; }
-        .nome-cell { text-align: left; font-weight: bold; width: 45%; }
-        .time-cell { font-family: monospace; font-weight: bold; width: 30%; }
-        .gap-cell { font-family: monospace; color: #aaa; font-size: 0.85em; width: 25%; }
-        .na-cell { color: #ff5722; font-size: 0.75em; font-weight: normal; }
+        /* TABELA RANKING */
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { background-color: #2a2a2a; color: #4CAF50; padding: 8px 4px; font-size: 0.6em; text-transform: uppercase; text-align: center; }
+        td { padding: 10px 2px; border-bottom: 1px solid #333; font-size: 0.85em; text-align: center; vertical-align: middle; overflow: hidden; text-overflow: ellipsis; }
+        
+        .nome-cell { text-align: left; font-weight: bold; padding-left: 5px; width: 35%; line-height: 1.2; }
+        .time-cell { font-family: monospace; font-weight: bold; width: 20%; }
+        .p1-color { color: #4dabf7; }
+        .p2-color { color: #be4bdb; }
+        .soma-color { color: #4CAF50; width: 25%; }
+        
+        .cat-tag { font-size: 0.7em; color: #777; font-weight: normal; display: block; }
 
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.98); padding-top: 20px; }
-        .modal-content { background-color: #1e1e1e; margin: auto; padding: 25px; border: 1px solid #4CAF50; width: 92%; max-width: 450px; border-radius: 20px; position: relative; }
-        .close-btn { position: absolute; right: 20px; top: 10px; color: #ff5722; font-size: 40px; cursor: pointer; }
-        .pista-tag { padding: 2px 6px; border-radius: 4px; font-size: 0.7em; color: white; font-weight: bold; }
-        .tag-p1 { background-color: #1976D2; } .tag-p2 { background-color: #9C27B0; }
+        /* MODAL */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.98); }
+        .modal-content { background-color: #1e1e1e; margin: 5% auto; padding: 20px; border: 1px solid #4CAF50; width: 95%; max-width: 500px; border-radius: 15px; position: relative; }
+        .close-btn { position: absolute; right: 15px; top: 5px; color: #ff5722; font-size: 35px; cursor: pointer; }
+        .na-cell { color: #ff5722; font-size: 0.75em; }
     </style>
 </head>
 <body>
 
     <div class="dashboard-container">
         <header>
-            <h1>Ranking Capivara Clube</h1>
-            <div id="status-update" style="font-size: 0.6em; color: #666;">Sincronizando...</div>
+            <h1>Capivara Clube</h1>
+            <div id="status" style="font-size: 0.6em; color: #666;">Sincronizando...</div>
         </header>
 
         <div class="live-section">
             <div class="king-box">
-                <div style="font-size: 0.7em; color: #FFC107;">👑 REI DA PISTA</div>
+                <div style="font-size: 0.6em; color: #FFC107;">👑 REI DA PISTA</div>
                 <div id="king-time" class="king-display">0.000s</div>
                 <div id="king-name" class="driver-info">-</div>
             </div>
@@ -63,7 +71,7 @@
         </div>
 
         <div class="category-filter">
-            <select id="categoria" onchange="renderizarRanking()">
+            <select id="categoria" onchange="renderizarTudo()">
                 <option value="TODOS">GERAL (TODAS CATEGORIAS)</option>
             </select>
         </div>
@@ -71,9 +79,10 @@
         <table>
             <thead>
                 <tr>
-                    <th style="text-align: left;">PILOTO</th>
-                    <th>SOMA</th>
-                    <th>GAP</th>
+                    <th style="width: 35%; text-align: left;">PILOTO</th>
+                    <th style="width: 20%;">P1</th>
+                    <th style="width: 20%;">P2</th>
+                    <th style="width: 25%;">SOMA</th>
                 </tr>
             </thead>
             <tbody id="ranking-body"></tbody>
@@ -83,13 +92,16 @@
     <div id="driverModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="fecharModal()">&times;</span>
-            <div style="text-align: center; margin-bottom: 15px;">
-                <h2 id="modal-nome" style="color: #FFC107; margin: 0;">-</h2>
-                <small id="modal-cat" style="color: #4CAF50;"></small>
-            </div>
+            <h2 id="modal-nome" style="color: #FFC107; text-align: center; margin-bottom: 5px;">-</h2>
+            <p id="modal-cat" style="text-align: center; color: #4CAF50; font-size: 0.8em; margin-bottom: 20px;"></p>
+            
             <table style="width: 100%;">
                 <thead>
-                    <tr><th>VOLTA</th><th>PISTA</th><th>TEMPO</th></tr>
+                    <tr>
+                        <th>BATERIA</th>
+                        <th style="color:#4dabf7">PISTA 1</th>
+                        <th style="color:#be4bdb">PISTA 2</th>
+                    </tr>
                 </thead>
                 <tbody id="history-body"></tbody>
             </table>
@@ -98,107 +110,91 @@
 
     <script>
         const googleScriptURL = "https://script.google.com/macros/s/AKfycbx6BbQbgdffb_sVon5PSu6M1EK-2_qN2aNbLbzAat_Vx8Kuvv-mVckZI9Kp7Cdd08E/exec";
-        let todosOsDados = [];
-        let rankingGeral = [];
+        let dadosOriginais = [];
+        let rankingCalculado = [];
 
-        async function carregarDados() {
+        async function carregar() {
             try {
-                const url = googleScriptURL + "?t=" + Date.now();
-                const response = await fetch(url);
-                const data = await response.json();
-                if (JSON.stringify(data) !== JSON.stringify(todosOsDados)) {
-                    todosOsDados = data;
-                    processarRanking();
+                const r = await fetch(googleScriptURL + "?t=" + Date.now());
+                const data = await r.json();
+                if (JSON.stringify(data) !== JSON.stringify(dadosOriginais)) {
+                    dadosOriginais = data;
+                    processarDados();
                 }
-                document.getElementById('status-update').textContent = "Sincronizado: " + new Date().toLocaleTimeString();
-            } catch (e) { document.getElementById('status-update').textContent = "Erro de conexão..."; }
+                document.getElementById('status').textContent = "Atualizado: " + new Date().toLocaleTimeString();
+            } catch (e) { console.error(e); }
         }
 
-        function processarRanking() {
+        function processarDados() {
             const pilotos = {};
             let king = { t: Infinity, n: '' }, rP1 = { t: Infinity, n: '' }, rP2 = { t: Infinity, n: '' };
 
-            todosOsDados.forEach(item => {
+            dadosOriginais.forEach(linha => {
                 const entries = [
-                    { id: item.id_p1, nome: item.nome_p1, cat: item.categoria_p1, tempo: item.tempo_p1, pista: 'P1' },
-                    { id: item.id_p2, nome: item.nome_p2, cat: item.categoria_p2, tempo: item.tempo_p2, pista: 'P2' }
+                    { id: linha.id_p1, nome: linha.nome_p1, cat: linha.categoria_p1, tempo: linha.tempo_p1, p: 'P1' },
+                    { id: linha.id_p2, nome: linha.nome_p2, cat: linha.categoria_p2, tempo: linha.tempo_p2, p: 'P2' }
                 ];
 
                 entries.forEach(e => {
-                    if (e.id && e.tempo > 0) {
-                        if (!pilotos[e.id]) {
-                            pilotos[e.id] = { nome: e.nome, cat: e.cat, mP1: Infinity, mP2: Infinity };
+                    if (e.id) {
+                        if (!pilotos[e.id]) pilotos[e.id] = { nome: e.nome, cat: e.cat, mP1: Infinity, mP2: Infinity };
+                        if (e.tempo > 0) {
+                            if (e.p === 'P1') pilotos[e.id].mP1 = Math.min(pilotos[e.id].mP1, e.tempo);
+                            else pilotos[e.id].mP2 = Math.min(pilotos[e.id].mP2, e.tempo);
+                            if (e.tempo < king.t) king = { t: e.tempo, n: e.nome };
+                            if (e.p === 'P1' && e.tempo < rP1.t) rP1 = { t: e.tempo, n: e.nome };
+                            if (e.p === 'P2' && e.tempo < rP2.t) rP2 = { t: e.tempo, n: e.nome };
                         }
-                        if (e.pista === 'P1') pilotos[e.id].mP1 = Math.min(pilotos[e.id].mP1, e.tempo);
-                        else pilotos[e.id].mP2 = Math.min(pilotos[e.id].mP2, e.tempo);
-
-                        if (e.tempo < king.t) king = { t: e.tempo, n: e.nome };
-                        if (e.pista === 'P1' && e.tempo < rP1.t) rP1 = { t: e.tempo, n: e.nome };
-                        if (e.pista === 'P2' && e.tempo < rP2.t) rP2 = { t: e.tempo, n: e.nome };
                     }
                 });
             });
 
-            document.getElementById('king-time').textContent = king.t !== Infinity ? king.t.toFixed(3)+"s" : "---";
+            document.getElementById('king-time').textContent = king.t !== Infinity ? king.t.toFixed(3) + "s" : "---";
             document.getElementById('king-name').textContent = king.n || "-";
-            document.getElementById('rec-p1-time').textContent = rP1.t !== Infinity ? rP1.t.toFixed(3)+"s" : "---";
+            document.getElementById('rec-p1-time').textContent = rP1.t !== Infinity ? rP1.t.toFixed(3) + "s" : "---";
             document.getElementById('rec-p1-name').textContent = rP1.n || "-";
-            document.getElementById('rec-p2-time').textContent = rP2.t !== Infinity ? rP2.t.toFixed(3)+"s" : "---";
+            document.getElementById('rec-p2-time').textContent = rP2.t !== Infinity ? rP2.t.toFixed(3) + "s" : "---";
             document.getElementById('rec-p2-name').textContent = rP2.n || "-";
 
-            rankingGeral = Object.values(pilotos).map(p => {
+            rankingCalculado = Object.values(pilotos).map(p => {
                 const completo = (p.mP1 !== Infinity && p.mP2 !== Infinity);
-                return { ...p, soma: completo ? (p.mP1 + p.mP2) : Infinity, completo: completo };
+                return { ...p, soma: completo ? (p.mP1 + p.mP2) : Infinity, completo };
             }).sort((a, b) => a.soma - b.soma);
 
             const catSel = document.getElementById('categoria');
             if (catSel.options.length <= 1) {
-                const cats = [...new Set(rankingGeral.map(p => p.cat))].sort();
+                const cats = [...new Set(rankingCalculado.map(p => p.cat))].sort();
                 cats.forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c; opt.textContent = c.toUpperCase();
                     catSel.appendChild(opt);
                 });
             }
-            renderizarRanking();
+            renderizarTudo();
         }
 
-        function renderizarRanking() {
+        function renderizarTudo() {
             const body = document.getElementById('ranking-body');
             const filtro = document.getElementById('categoria').value;
             body.innerHTML = '';
+            const lista = (filtro === 'TODOS') ? rankingCalculado : rankingCalculado.filter(p => p.cat === filtro);
 
-            const listaFiltrada = (filtro === 'TODOS') ? rankingGeral : rankingGeral.filter(p => p.cat === filtro);
-            
-            // Pega o tempo do primeiro que estiver completo para basear o GAP
-            const tempoLider = listaFiltrada.find(p => p.completo)?.soma || 0;
-
-            listaFiltrada.forEach((p, i) => {
+            lista.forEach((p, i) => {
                 const row = document.createElement('tr');
                 row.onclick = () => abrirExtrato(p.nome, p.cat);
                 
-                const somaTxt = p.completo ? p.soma.toFixed(3)+'s' : '<span class="na-cell">N/A</span>';
-                
-                // Lógica do GAP
-                let gapTxt = "---";
-                if (p.completo) {
-                    if (i === 0 || p.soma === tempoLider) {
-                        gapTxt = '<span style="color:#4CAF50; font-size:0.7em;">LÍDER</span>';
-                    } else {
-                        const diff = p.soma - tempoLider;
-                        gapTxt = `+${diff.toFixed(3)}s`;
-                    }
-                }
-
-                const pos = (i + 1) + 'º';
+                const t1 = p.mP1 !== Infinity ? p.mP1.toFixed(2) : '--';
+                const t2 = p.mP2 !== Infinity ? p.mP2.toFixed(2) : '--';
+                const soma = p.completo ? p.soma.toFixed(3) : '<span class="na-cell">PEND.</span>';
 
                 row.innerHTML = `
                     <td class="nome-cell">
-                        <span style="color:#4CAF50">${pos}</span> ${p.nome}<br>
-                        <small style="color:#666; font-weight:normal;">P1:${p.mP1.toFixed(2)} | P2:${p.mP2 !== Infinity ? p.mP2.toFixed(2) : '--'}</small>
+                        <span style="color:#4CAF50">${i+1}º</span> ${p.nome}
+                        <span class="cat-tag">${p.cat}</span>
                     </td>
-                    <td class="time-cell">${somaTxt}</td>
-                    <td class="gap-cell">${gapTxt}</td>
+                    <td class="time-cell p1-color">${t1}</td>
+                    <td class="time-cell p2-color">${t2}</td>
+                    <td class="time-cell soma-color">${soma}</td>
                 `;
                 body.appendChild(row);
             });
@@ -209,16 +205,18 @@
             document.getElementById('modal-cat').textContent = cat;
             const hBody = document.getElementById('history-body');
             hBody.innerHTML = '';
-            let v = [];
-            let cP1 = 0, cP2 = 0;
-            todosOsDados.forEach(item => {
-                if (item.nome_p1 === nome && item.tempo_p1 > 0) { cP1++; v.push({ p: 'P1', t: item.tempo_p1, n: cP1 }); }
-                if (item.nome_p2 === nome && item.tempo_p2 > 0) { cP2++; v.push({ p: 'P2', t: item.tempo_p2, n: cP2 }); }
-            });
-            v.reverse().forEach(vol => {
-                const r = document.createElement('tr');
-                r.innerHTML = `<td>Volta ${vol.n}</td><td><span class="pista-tag ${vol.p==='P1'?'tag-p1':'tag-p2'}">${vol.p}</span></td><td class="time-cell">${vol.t.toFixed(3)}s</td>`;
-                hBody.appendChild(r);
+            let count = 0;
+            dadosOriginais.forEach(linha => {
+                const temP1 = (linha.nome_p1 === nome);
+                const temP2 = (linha.nome_p2 === nome);
+                if (temP1 || temP2) {
+                    count++;
+                    const t1 = temP1 ? (linha.tempo_p1 > 0 ? linha.tempo_p1.toFixed(3) : '0.000 (N/A)') : '---';
+                    const t2 = temP2 ? (linha.tempo_p2 > 0 ? linha.tempo_p2.toFixed(3) : '0.000 (N/A)') : '---';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${count}ª</td><td class="time-cell p1-color">${t1}</td><td class="time-cell p2-color">${t2}</td>`;
+                    hBody.appendChild(tr);
+                }
             });
             document.getElementById('driverModal').style.display = "block";
         }
@@ -226,8 +224,8 @@
         function fecharModal() { document.getElementById('driverModal').style.display = "none"; }
         window.onclick = e => { if(e.target == document.getElementById('driverModal')) fecharModal(); }
 
-        carregarDados();
-        setInterval(carregarDados, 3000);
+        carregar();
+        setInterval(carregar, 5000);
     </script>
 </body>
 </html>
