@@ -126,7 +126,7 @@
         const googleScriptURL = "https://script.google.com/macros/s/AKfycbx6BbQbgdffb_sVon5PSu6M1EK-2_qN2aNbLbzAat_Vx8Kuvv-mVckZI9Kp7Cdd08E/exec";
         let dadosOriginais = [];
         let rankingCalculado = [];
-        let pilotosDB = {}; // Armazenar os melhores tempos para fácil acesso na modal
+        let pilotosDB = {};
 
         async function carregar() {
             try {
@@ -139,12 +139,21 @@
             } catch (e) { console.error("Erro na carga"); }
         }
 
+        // FUNÇÃO PARA LIMPAR DUPLICADOS (FILTRO ANTI-SUJEIRA ESP)
+        function filtrarDuplicados(listaTempos) {
+            return listaTempos.filter((tempo, index, self) => {
+                // Mantém apenas se o tempo for diferente do anterior (remove repetições seguidas de valores idênticos)
+                return index === 0 || tempo !== self[index - 1];
+            });
+        }
+
         function processarDados() {
             pilotosDB = {};
             let absoluteKing = { tempo: Infinity, n: '-' };
             let rP1 = { t: Infinity, n: '-' }, rP2 = { t: Infinity, n: '-' };
 
             dadosOriginais.forEach(linha => {
+                // Processamento P1
                 if(linha.nome_p1) {
                     if(!pilotosDB[linha.nome_p1]) pilotosDB[linha.nome_p1] = { nome: linha.nome_p1, cat: linha.categoria_p1, mP1: Infinity, mP2: Infinity };
                     let t = parseFloat(linha.tempo_p1) || 0;
@@ -154,6 +163,7 @@
                         if(t < absoluteKing.tempo) absoluteKing = { tempo: t, n: linha.nome_p1 };
                     }
                 }
+                // Processamento P2
                 if(linha.nome_p2) {
                     if(!pilotosDB[linha.nome_p2]) pilotosDB[linha.nome_p2] = { nome: linha.nome_p2, cat: linha.categoria_p2, mP1: Infinity, mP2: Infinity };
                     let t = parseFloat(linha.tempo_p2) || 0;
@@ -220,16 +230,19 @@
             const p = pilotosDB[nome];
             document.getElementById('modal-nome').textContent = nome;
             document.getElementById('modal-cat').textContent = cat;
-            
-            // ATUALIZA OS MELHORES VALORES NA MODAL
             document.getElementById('pb-p1').textContent = p.mP1 !== Infinity ? p.mP1.toFixed(3) + "s" : "---";
             document.getElementById('pb-p2').textContent = p.mP2 !== Infinity ? p.mP2.toFixed(3) + "s" : "---";
 
             const hBody = document.getElementById('history-body');
             hBody.innerHTML = '';
 
-            let v1 = dadosOriginais.filter(l => l.nome_p1 === nome && parseFloat(l.tempo_p1) > 0).map(l => parseFloat(l.tempo_p1));
-            let v2 = dadosOriginais.filter(l => l.nome_p2 === nome && parseFloat(l.tempo_p2) > 0).map(l => parseFloat(l.tempo_p2));
+            // Pega todas as voltas > 0
+            let v1Raw = dadosOriginais.filter(l => l.nome_p1 === nome && parseFloat(l.tempo_p1) > 0).map(l => parseFloat(l.tempo_p1));
+            let v2Raw = dadosOriginais.filter(l => l.nome_p2 === nome && parseFloat(l.tempo_p2) > 0).map(l => parseFloat(l.tempo_p2));
+            
+            // APLICA O FILTRO DE DEDUPLICAÇÃO
+            let v1 = filtrarDuplicados(v1Raw);
+            let v2 = filtrarDuplicados(v2Raw);
             
             let max = Math.max(v1.length, v2.length);
 
@@ -249,7 +262,7 @@
         window.onclick = e => { if(e.target == document.getElementById('driverModal')) fecharModal(); }
 
         carregar();
-        setInterval(carregar, 3000);
+        setInterval(carregar, 15000);
     </script>
 </body>
 </html>
