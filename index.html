@@ -27,19 +27,18 @@
         /* TABELA RANKING */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { background-color: #2a2a2a; color: #4CAF50; padding: 8px 4px; font-size: 0.6em; text-transform: uppercase; text-align: center; }
-        td { padding: 10px 2px; border-bottom: 1px solid #333; font-size: 0.85em; text-align: center; vertical-align: middle; overflow: hidden; text-overflow: ellipsis; }
+        td { padding: 10px 2px; border-bottom: 1px solid #333; font-size: 0.85em; text-align: center; vertical-align: middle; }
         
         .nome-cell { text-align: left; font-weight: bold; padding-left: 5px; width: 35%; line-height: 1.2; }
         .time-cell { font-family: monospace; font-weight: bold; width: 20%; }
         .p1-color { color: #4dabf7; }
         .p2-color { color: #be4bdb; }
         .soma-color { color: #4CAF50; width: 25%; }
-        
         .cat-tag { font-size: 0.7em; color: #777; font-weight: normal; display: block; }
 
         /* MODAL */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.98); }
-        .modal-content { background-color: #1e1e1e; margin: 5% auto; padding: 20px; border: 1px solid #4CAF50; width: 95%; max-width: 500px; border-radius: 15px; position: relative; }
+        .modal-content { background-color: #1e1e1e; margin: 5% auto; padding: 20px; border: 1px solid #4CAF50; width: 95%; max-width: 500px; border-radius: 15px; position: relative; max-height: 90vh; overflow-y: auto; }
         .close-btn { position: absolute; right: 15px; top: 5px; color: #ff5722; font-size: 35px; cursor: pointer; }
         .na-cell { color: #ff5722; font-size: 0.75em; }
     </style>
@@ -54,7 +53,7 @@
 
         <div class="live-section">
             <div class="king-box">
-                <div style="font-size: 0.6em; color: #FFC107;">👑 REI DA PISTA</div>
+                <div style="font-size: 0.6em; color: #FFC107;">👑 REI DA PISTA (MELHOR SOMA)</div>
                 <div id="king-time" class="king-display">0.000s</div>
                 <div id="king-name" class="driver-info">-</div>
             </div>
@@ -85,7 +84,7 @@
                     <th style="width: 25%;">SOMA</th>
                 </tr>
             </thead>
-            <tbody id="ranking-body"></tbody>
+            <tbody id="ranking-body"></tbody>14:21 25/02/2026
         </table>
     </div>
 
@@ -93,12 +92,13 @@
         <div class="modal-content">
             <span class="close-btn" onclick="fecharModal()">&times;</span>
             <h2 id="modal-nome" style="color: #FFC107; text-align: center; margin-bottom: 5px;">-</h2>
-            <p id="modal-cat" style="text-align: center; color: #4CAF50; font-size: 0.8em; margin-bottom: 20px;"></p>
+            <p id="modal-cat" style="text-align: center; color: #4CAF50; font-size: 0.8em; margin-bottom: 10px;"></p>
+            <p style="text-align: center; font-size: 0.75em; color: #00FF94; font-weight: bold; margin-bottom: 20px;">HISTÓRICO DE VOLTAS VÁLIDAS</p>
             
             <table style="width: 100%;">
                 <thead>
                     <tr>
-                        <th>BATERIA</th>
+                        <th style="font-size: 0.55em;">Nº VOLTAS</th>
                         <th style="color:#4dabf7">PISTA 1</th>
                         <th style="color:#be4bdb">PISTA 2</th>
                     </tr>
@@ -121,45 +121,43 @@
                     dadosOriginais = data;
                     processarDados();
                 }
-                document.getElementById('status').textContent = "Atualizado: " + new Date().toLocaleTimeString();
+                document.getElementById('status').textContent = "Sincronizado: " + new Date().toLocaleTimeString();
             } catch (e) { console.error(e); }
         }
 
         function processarDados() {
             const pilotos = {};
-            let king = { t: Infinity, n: '' }, rP1 = { t: Infinity, n: '' }, rP2 = { t: Infinity, n: '' };
+            let king = { soma: Infinity, n: '-' };
+            let rP1 = { t: Infinity, n: '-' }, rP2 = { t: Infinity, n: '-' };
 
             dadosOriginais.forEach(linha => {
-                const entries = [
-                    { id: linha.id_p1, nome: linha.nome_p1, cat: linha.categoria_p1, tempo: linha.tempo_p1, p: 'P1' },
-                    { id: linha.id_p2, nome: linha.nome_p2, cat: linha.categoria_p2, tempo: linha.tempo_p2, p: 'P2' }
-                ];
-
-                entries.forEach(e => {
-                    if (e.id) {
-                        if (!pilotos[e.id]) pilotos[e.id] = { nome: e.nome, cat: e.cat, mP1: Infinity, mP2: Infinity };
-                        if (e.tempo > 0) {
-                            if (e.p === 'P1') pilotos[e.id].mP1 = Math.min(pilotos[e.id].mP1, e.tempo);
-                            else pilotos[e.id].mP2 = Math.min(pilotos[e.id].mP2, e.tempo);
-                            if (e.tempo < king.t) king = { t: e.tempo, n: e.nome };
-                            if (e.p === 'P1' && e.tempo < rP1.t) rP1 = { t: e.tempo, n: e.nome };
-                            if (e.p === 'P2' && e.tempo < rP2.t) rP2 = { t: e.tempo, n: e.nome };
-                        }
-                    }
-                });
+                if(linha.nome_p1) {
+                    if(!pilotos[linha.nome_p1]) pilotos[linha.nome_p1] = { nome: linha.nome_p1, cat: linha.categoria_p1, mP1: Infinity, mP2: Infinity };
+                    let t = parseFloat(linha.tempo_p1) || 0;
+                    if(t > 0 && t < pilotos[linha.nome_p1].mP1) pilotos[linha.nome_p1].mP1 = t;
+                    if(t > 0 && t < rP1.t) rP1 = { t: t, n: linha.nome_p1 };
+                }
+                if(linha.nome_p2) {
+                    if(!pilotos[linha.nome_p2]) pilotos[linha.nome_p2] = { nome: linha.nome_p2, cat: linha.categoria_p2, mP1: Infinity, mP2: Infinity };
+                    let t = parseFloat(linha.tempo_p2) || 0;
+                    if(t > 0 && t < pilotos[linha.nome_p2].mP2) pilotos[linha.nome_p2].mP2 = t;
+                    if(t > 0 && t < rP2.t) rP2 = { t: t, n: linha.nome_p2 };
+                }
             });
-
-            document.getElementById('king-time').textContent = king.t !== Infinity ? king.t.toFixed(3) + "s" : "---";
-            document.getElementById('king-name').textContent = king.n || "-";
-            document.getElementById('rec-p1-time').textContent = rP1.t !== Infinity ? rP1.t.toFixed(3) + "s" : "---";
-            document.getElementById('rec-p1-name').textContent = rP1.n || "-";
-            document.getElementById('rec-p2-time').textContent = rP2.t !== Infinity ? rP2.t.toFixed(3) + "s" : "---";
-            document.getElementById('rec-p2-name').textContent = rP2.n || "-";
 
             rankingCalculado = Object.values(pilotos).map(p => {
                 const completo = (p.mP1 !== Infinity && p.mP2 !== Infinity);
-                return { ...p, soma: completo ? (p.mP1 + p.mP2) : Infinity, completo };
+                const soma = completo ? (p.mP1 + p.mP2) : Infinity;
+                if (soma < king.soma) king = { soma: soma, n: p.nome };
+                return { ...p, soma: soma, completo: completo };
             }).sort((a, b) => a.soma - b.soma);
+
+            document.getElementById('king-time').textContent = king.soma !== Infinity ? king.soma.toFixed(3) + "s" : "---";
+            document.getElementById('king-name').textContent = king.n;
+            document.getElementById('rec-p1-time').textContent = rP1.t !== Infinity ? rP1.t.toFixed(3) + "s" : "---";
+            document.getElementById('rec-p1-name').textContent = rP1.n;
+            document.getElementById('rec-p2-time').textContent = rP2.t !== Infinity ? rP2.t.toFixed(3) + "s" : "---";
+            document.getElementById('rec-p2-name').textContent = rP2.n;
 
             const catSel = document.getElementById('categoria');
             if (catSel.options.length <= 1) {
@@ -182,9 +180,8 @@
             lista.forEach((p, i) => {
                 const row = document.createElement('tr');
                 row.onclick = () => abrirExtrato(p.nome, p.cat);
-                
-                const t1 = p.mP1 !== Infinity ? p.mP1.toFixed(2) : '--';
-                const t2 = p.mP2 !== Infinity ? p.mP2.toFixed(2) : '--';
+                const t1 = p.mP1 !== Infinity ? p.mP1.toFixed(3) : '--';
+                const t2 = p.mP2 !== Infinity ? p.mP2.toFixed(3) : '--';
                 const soma = p.completo ? p.soma.toFixed(3) : '<span class="na-cell">PEND.</span>';
 
                 row.innerHTML = `
@@ -205,19 +202,26 @@
             document.getElementById('modal-cat').textContent = cat;
             const hBody = document.getElementById('history-body');
             hBody.innerHTML = '';
-            let count = 0;
-            dadosOriginais.forEach(linha => {
-                const temP1 = (linha.nome_p1 === nome);
-                const temP2 = (linha.nome_p2 === nome);
-                if (temP1 || temP2) {
-                    count++;
-                    const t1 = temP1 ? (linha.tempo_p1 > 0 ? linha.tempo_p1.toFixed(3) : '0.000 (N/A)') : '---';
-                    const t2 = temP2 ? (linha.tempo_p2 > 0 ? linha.tempo_p2.toFixed(3) : '0.000 (N/A)') : '---';
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${count}ª</td><td class="time-cell p1-color">${t1}</td><td class="time-cell p2-color">${t2}</td>`;
-                    hBody.appendChild(tr);
-                }
-            });
+
+            // FILTRA APENAS VOLTAS MAIORES QUE ZERO (VÁLIDAS)
+            let voltasP1 = dadosOriginais.filter(l => l.nome_p1 === nome && parseFloat(l.tempo_p1) > 0).map(l => parseFloat(l.tempo_p1));
+            let voltasP2 = dadosOriginais.filter(l => l.nome_p2 === nome && parseFloat(l.tempo_p2) > 0).map(l => parseFloat(l.tempo_p2));
+            
+            let maxRows = Math.max(voltasP1.length, voltasP2.length);
+
+            for (let i = 0; i < maxRows; i++) {
+                const tr = document.createElement('tr');
+                
+                let txtP1 = voltasP1[i] ? voltasP1[i].toFixed(3) + "s" : "---";
+                let txtP2 = voltasP2[i] ? voltasP2[i].toFixed(3) + "s" : "---";
+
+                tr.innerHTML = `
+                    <td style="color:#888; font-size: 0.8em;">#${i+1}</td>
+                    <td class="time-cell p1-color">${txtP1}</td>
+                    <td class="time-cell p2-color">${txtP2}</td>
+                `;
+                hBody.appendChild(tr);
+            }
             document.getElementById('driverModal').style.display = "block";
         }
 
@@ -225,7 +229,7 @@
         window.onclick = e => { if(e.target == document.getElementById('driverModal')) fecharModal(); }
 
         carregar();
-        setInterval(carregar, 5000);
+        setInterval(carregar, 15000);
     </script>
 </body>
 </html>
