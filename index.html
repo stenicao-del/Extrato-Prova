@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ranking Capivara Clube</title>
     <style>
+        /* ESTILOS GERAIS */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Segoe UI', sans-serif; background-color: #121212; color: #e0e0e0; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         .dashboard-container { width: 100%; max-width: 650px; background-color: #1e1e1e; padding: 15px; border-radius: 20px; border: 1px solid #333; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
@@ -24,16 +25,17 @@
         .category-filter { margin-bottom: 15px; }
         .category-filter select { background-color: #333; color: white; padding: 12px; border-radius: 10px; border: 1px solid #4CAF50; width: 100%; font-size: 14px; font-weight: bold; outline: none; }
 
-        /* TABELA RANKING */
+        /* TABELA RANKING AJUSTADA PARA DIF */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th { background-color: #2a2a2a; color: #4CAF50; padding: 8px 4px; font-size: 0.65em; text-transform: uppercase; text-align: center; }
-        td { padding: 12px 2px; border-bottom: 1px solid #333; font-size: 0.9em; text-align: center; vertical-align: middle; }
+        th { background-color: #2a2a2a; color: #4CAF50; padding: 8px 2px; font-size: 0.60em; text-transform: uppercase; text-align: center; }
+        td { padding: 12px 1px; border-bottom: 1px solid #333; font-size: 0.85em; text-align: center; vertical-align: middle; }
         
-        .nome-cell { text-align: left; font-weight: bold; padding-left: 10px; width: 35%; line-height: 1.2; }
-        .time-cell { font-family: monospace; font-weight: bold; width: 20%; }
+        .nome-cell { text-align: left; font-weight: bold; padding-left: 5px; width: 32%; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .time-cell { font-family: monospace; font-weight: bold; width: 17%; }
         .p1-color { color: #4dabf7; }
         .p2-color { color: #be4bdb; }
-        .soma-color { color: #4CAF50; width: 25%; }
+        .soma-color { color: #4CAF50; width: 19%; }
+        .dif-cell { color: #ff5722; font-family: monospace; font-size: 0.8em; width: 15%; }
         .cat-tag { font-size: 0.7em; color: #777; font-weight: normal; display: block; }
 
         /* MODAL */
@@ -41,7 +43,6 @@
         .modal-content { background-color: #1e1e1e; margin: 5% auto; padding: 25px; border: 1px solid #4CAF50; width: 95%; max-width: 450px; border-radius: 20px; position: relative; max-height: 85vh; overflow-y: auto; }
         .close-btn { position: absolute; right: 20px; top: 10px; color: #ff5722; font-size: 30px; cursor: pointer; }
 
-        /* DESTAQUES INDIVIDUAIS NA MODAL */
         .personal-best-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .pb-card { background: #252525; padding: 10px; border-radius: 12px; text-align: center; border: 1px solid #333; }
         .pb-card small { font-size: 0.6em; color: #888; text-transform: uppercase; display: block; margin-bottom: 4px; }
@@ -62,12 +63,12 @@
                 <div id="king-name" class="driver-info">-</div>
             </div>
             <div class="record-box">
-                <div style="font-size: 0.6em; color: #888;">REC P1</div>
+                <div style="font-size: 0.6em; color: #888;">RECORD P1</div>
                 <div id="rec-p1-time" class="record-display">0.000s</div>
                 <div id="rec-p1-name" class="driver-info">-</div>
             </div>
             <div class="record-box">
-                <div style="font-size: 0.6em; color: #888;">REC P2</div>
+                <div style="font-size: 0.6em; color: #888;">RECORD P2</div>
                 <div id="rec-p2-time" class="record-display">0.000s</div>
                 <div id="rec-p2-name" class="driver-info">-</div>
             </div>
@@ -82,10 +83,11 @@
         <table>
             <thead>
                 <tr>
-                    <th style="width: 35%; text-align: left; padding-left: 10px;">PILOTO</th>
-                    <th style="width: 20%;">PISTA 1</th>
-                    <th style="width: 20%;">PISTA 2</th>
-                    <th style="width: 25%;">SOMA</th>
+                    <th style="width: 32%; text-align: left; padding-left: 10px;">PILOTO</th>
+                    <th style="width: 17%;">P1</th>
+                    <th style="width: 17%;">P2</th>
+                    <th style="width: 19%;">SOMA</th>
+                    <th style="width: 15%;">DIF</th>
                 </tr>
             </thead>
             <tbody id="ranking-body"></tbody>
@@ -139,10 +141,8 @@
             } catch (e) { console.error("Erro na carga"); }
         }
 
-        // FUNÇÃO PARA LIMPAR DUPLICADOS (FILTRO ANTI-SUJEIRA ESP)
         function filtrarDuplicados(listaTempos) {
             return listaTempos.filter((tempo, index, self) => {
-                // Mantém apenas se o tempo for diferente do anterior (remove repetições seguidas de valores idênticos)
                 return index === 0 || tempo !== self[index - 1];
             });
         }
@@ -153,7 +153,6 @@
             let rP1 = { t: Infinity, n: '-' }, rP2 = { t: Infinity, n: '-' };
 
             dadosOriginais.forEach(linha => {
-                // Processamento P1
                 if(linha.nome_p1) {
                     if(!pilotosDB[linha.nome_p1]) pilotosDB[linha.nome_p1] = { nome: linha.nome_p1, cat: linha.categoria_p1, mP1: Infinity, mP2: Infinity };
                     let t = parseFloat(linha.tempo_p1) || 0;
@@ -163,7 +162,6 @@
                         if(t < absoluteKing.tempo) absoluteKing = { tempo: t, n: linha.nome_p1 };
                     }
                 }
-                // Processamento P2
                 if(linha.nome_p2) {
                     if(!pilotosDB[linha.nome_p2]) pilotosDB[linha.nome_p2] = { nome: linha.nome_p2, cat: linha.categoria_p2, mP1: Infinity, mP2: Infinity };
                     let t = parseFloat(linha.tempo_p2) || 0;
@@ -190,7 +188,7 @@
 
             const catSel = document.getElementById('categoria');
             if (catSel.options.length <= 1) {
-                const cats = [...new Set(rankingCalculado.map(p => p.cat))].sort();
+                const cats = [...new Set(rankingCalculado.map(p => p.cat))].filter(c => c).sort();
                 cats.forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c; opt.textContent = c.toUpperCase();
@@ -204,14 +202,27 @@
             const body = document.getElementById('ranking-body');
             const filtro = document.getElementById('categoria').value;
             body.innerHTML = '';
-            const lista = (filtro === 'TODOS') ? rankingCalculado : rankingCalculado.filter(p => p.cat === filtro);
+            
+            let lista = (filtro === 'TODOS') ? rankingCalculado : rankingCalculado.filter(p => p.cat === filtro);
+
+            // Referência de tempo do 1º colocado para o cálculo do DIF
+            const tempoLider = (lista.length > 0 && lista[0].completo) ? lista[0].soma : null;
 
             lista.forEach((p, i) => {
                 const row = document.createElement('tr');
                 row.onclick = () => abrirExtrato(p.nome, p.cat);
+                
                 const t1 = p.mP1 !== Infinity ? p.mP1.toFixed(3) : '--';
                 const t2 = p.mP2 !== Infinity ? p.mP2.toFixed(3) : '--';
                 const soma = p.completo ? p.soma.toFixed(3) : 'PENDENTE';
+
+                // Cálculo da Diferença (DIF)
+                let diferenca = "---";
+                if (i === 0 && p.completo) {
+                    diferenca = "LÍDER";
+                } else if (p.completo && tempoLider !== null) {
+                    diferenca = "+" + (p.soma - tempoLider).toFixed(3);
+                }
 
                 row.innerHTML = `
                     <td class="nome-cell">
@@ -221,6 +232,7 @@
                     <td class="time-cell p1-color">${t1}</td>
                     <td class="time-cell p2-color">${t2}</td>
                     <td class="time-cell soma-color">${soma}</td>
+                    <td class="dif-cell">${diferenca}</td>
                 `;
                 body.appendChild(row);
             });
@@ -236,14 +248,11 @@
             const hBody = document.getElementById('history-body');
             hBody.innerHTML = '';
 
-            // Pega todas as voltas > 0
             let v1Raw = dadosOriginais.filter(l => l.nome_p1 === nome && parseFloat(l.tempo_p1) > 0).map(l => parseFloat(l.tempo_p1));
             let v2Raw = dadosOriginais.filter(l => l.nome_p2 === nome && parseFloat(l.tempo_p2) > 0).map(l => parseFloat(l.tempo_p2));
             
-            // APLICA O FILTRO DE DEDUPLICAÇÃO
             let v1 = filtrarDuplicados(v1Raw);
             let v2 = filtrarDuplicados(v2Raw);
-            
             let max = Math.max(v1.length, v2.length);
 
             for (let i = 0; i < max; i++) {
@@ -266,4 +275,3 @@
     </script>
 </body>
 </html>
-
