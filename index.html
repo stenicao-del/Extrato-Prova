@@ -25,7 +25,7 @@
         .category-filter { margin-bottom: 15px; }
         .category-filter select { background-color: #333; color: white; padding: 12px; border-radius: 10px; border: 1px solid #4CAF50; width: 100%; font-size: 14px; font-weight: bold; outline: none; }
 
-        /* TABELA RANKING AJUSTADA PARA DIF */
+        /* TABELA RANKING */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { background-color: #2a2a2a; color: #4CAF50; padding: 8px 2px; font-size: 0.60em; text-transform: uppercase; text-align: center; }
         td { padding: 12px 1px; border-bottom: 1px solid #333; font-size: 0.85em; text-align: center; vertical-align: middle; }
@@ -130,6 +130,13 @@
         let rankingCalculado = [];
         let pilotosDB = {};
 
+        // Função de formatação centralizada para tratar o 99.999
+        function formatarTempo(valor, sufixo = "") {
+            if (valor === Infinity || valor === null || isNaN(valor)) return "---";
+            if (valor === 99.999) return "Não completou";
+            return valor.toFixed(3) + sufixo;
+        }
+
         async function carregar() {
             try {
                 const r = await fetch(googleScriptURL + "?t=" + Date.now());
@@ -179,11 +186,11 @@
                 return { ...p, soma: soma, completo: completo };
             }).sort((a, b) => a.soma - b.soma);
 
-            document.getElementById('king-time').textContent = absoluteKing.tempo !== Infinity ? absoluteKing.tempo.toFixed(3) + "s" : "---";
+            document.getElementById('king-time').textContent = formatarTempo(absoluteKing.tempo, "s");
             document.getElementById('king-name').textContent = absoluteKing.n;
-            document.getElementById('rec-p1-time').textContent = rP1.t !== Infinity ? rP1.t.toFixed(3) + "s" : "---";
+            document.getElementById('rec-p1-time').textContent = formatarTempo(rP1.t, "s");
             document.getElementById('rec-p1-name').textContent = rP1.n;
-            document.getElementById('rec-p2-time').textContent = rP2.t !== Infinity ? rP2.t.toFixed(3) + "s" : "---";
+            document.getElementById('rec-p2-time').textContent = formatarTempo(rP2.t, "s");
             document.getElementById('rec-p2-name').textContent = rP2.n;
 
             const catSel = document.getElementById('categoria');
@@ -204,23 +211,22 @@
             body.innerHTML = '';
             
             let lista = (filtro === 'TODOS') ? rankingCalculado : rankingCalculado.filter(p => p.cat === filtro);
-
-            // Referência de tempo do 1º colocado para o cálculo do DIF
             const tempoLider = (lista.length > 0 && lista[0].completo) ? lista[0].soma : null;
 
             lista.forEach((p, i) => {
                 const row = document.createElement('tr');
                 row.onclick = () => abrirExtrato(p.nome, p.cat);
                 
-                const t1 = p.mP1 !== Infinity ? p.mP1.toFixed(3) : '--';
-                const t2 = p.mP2 !== Infinity ? p.mP2.toFixed(3) : '--';
-                const soma = p.completo ? p.soma.toFixed(3) : 'PENDENTE';
+                const t1 = formatarTempo(p.mP1);
+                const t2 = formatarTempo(p.mP2);
+                
+                // Se a soma for muito alta (envolvendo um 99.999), exibe PENDENTE ou texto customizado
+                const soma = (p.completo && p.soma < 190) ? p.soma.toFixed(3) : 'PENDENTE';
 
-                // Cálculo da Diferença (DIF)
                 let diferenca = "---";
-                if (i === 0 && p.completo) {
+                if (i === 0 && p.completo && p.soma < 190) {
                     diferenca = "LÍDER";
-                } else if (p.completo && tempoLider !== null) {
+                } else if (p.completo && tempoLider !== null && p.soma < 190) {
                     diferenca = "+" + (p.soma - tempoLider).toFixed(3);
                 }
 
@@ -240,10 +246,11 @@
 
         function abrirExtrato(nome, cat) {
             const p = pilotosDB[nome];
+            if (!p) return;
             document.getElementById('modal-nome').textContent = nome;
             document.getElementById('modal-cat').textContent = cat;
-            document.getElementById('pb-p1').textContent = p.mP1 !== Infinity ? p.mP1.toFixed(3) + "s" : "---";
-            document.getElementById('pb-p2').textContent = p.mP2 !== Infinity ? p.mP2.toFixed(3) + "s" : "---";
+            document.getElementById('pb-p1').textContent = formatarTempo(p.mP1, "s");
+            document.getElementById('pb-p2').textContent = formatarTempo(p.mP2, "s");
 
             const hBody = document.getElementById('history-body');
             hBody.innerHTML = '';
@@ -259,8 +266,8 @@
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td style="color:#888;">#${i+1}</td>
-                    <td class="time-cell p1-color">${v1[i] ? v1[i].toFixed(3) + "s" : "---"}</td>
-                    <td class="time-cell p2-color">${v2[i] ? v2[i].toFixed(3) + "s" : "---"}</td>
+                    <td class="time-cell p1-color">${v1[i] ? formatarTempo(v1[i], "s") : "---"}</td>
+                    <td class="time-cell p2-color">${v2[i] ? formatarTempo(v2[i], "s") : "---"}</td>
                 `;
                 hBody.appendChild(tr);
             }
@@ -271,7 +278,7 @@
         window.onclick = e => { if(e.target == document.getElementById('driverModal')) fecharModal(); }
 
         carregar();
-        setInterval(carregar, 15000);
+        setInterval(carregar, 3000);
     </script>
 </body>
 </html>
